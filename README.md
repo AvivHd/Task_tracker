@@ -103,7 +103,7 @@ Access the interactive API documentation:
   {
     "title": "Task title",
     "description": "Optional description",
-    "priority": 1,
+    "priority": "high",
     "due_date": "2026-04-20T10:00:00"
   }
   ```
@@ -129,8 +129,8 @@ Access the interactive API documentation:
 | `id` | Integer | Primary key (auto-generated) |
 | `title` | String | Task title (required) |
 | `description` | String | Task description (optional) |
-| `status` | String | Task status (default: "open") |
-| `priority` | Integer | Priority level (default: 3) |
+| `status` | String | `open`, `in_progress`, or `done` (default: `open`) |
+| `priority` | String | `high`, `medium`, or `low` (default: `medium`) |
 | `due_date` | DateTime | Task due date (optional) |
 | `created_at` | DateTime | Creation timestamp (auto-generated) |
 

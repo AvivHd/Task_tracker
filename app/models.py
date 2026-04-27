@@ -21,5 +21,5 @@ class Task(Base):
     description = Column(String, nullable=True)
     status = Column(String, default="open")
     priority = Column(String, default="medium")
-    due_date = Column(DateTime, nullable=True) #Fix this to dd/mm/yyyy, hh:mm
+    due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())

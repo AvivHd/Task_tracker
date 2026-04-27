@@ -50,6 +50,10 @@
                     <option value="low">Low</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="due-date">Due date</label>
+                <input type="date" id="due-date">
+            </div>
             <button type="button" id="add-task-btn" class="btn" onclick="createTask()">Add task</button>
         </div>
     </div>
@@ -91,6 +95,13 @@
                         priorityBadge.className = `badge badge-${task.priority}`;
                         priorityBadge.textContent = task.priority;
 
+                        if (task.due_date) {
+                            const dueBadge = document.createElement("span");
+                            dueBadge.className = "badge badge-low";
+                            dueBadge.textContent = "Due: " + new Date(task.due_date).toLocaleDateString("en-GB");
+                            header.appendChild(dueBadge);
+                        }
+
                         // delete button
                         const deleteBtn = document.createElement("button");
                         deleteBtn.className = "btn btn-danger";
@@ -107,6 +118,7 @@
                             document.getElementById("title").value = task.title;
                             document.getElementById("description").value = task.description || "";
                             document.getElementById("priority").value = task.priority;
+                            document.getElementById("due-date").value = task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "";
                         };
 
 
@@ -121,8 +133,17 @@
                         };
 
                         header.appendChild(title);
-                        header.appendChild(statusBadge);
+                        if (task.due_date) {
+                            const dueBadge = document.createElement("span");
+                            const dueDate = new Date(task.due_date);
+                            const today = new Date();
+                            const isOverdue = dueDate < today;
+                            dueBadge.className = isOverdue ? "badge badge-high" : "badge badge-low";
+                            dueBadge.textContent = "Due: " + dueDate.toLocaleDateString("en-GB");
+                            header.appendChild(dueBadge);
+                        }
                         header.appendChild(priorityBadge);
+                        header.appendChild(statusBadge);
                         header.appendChild(editBtn);
                         header.appendChild(deleteBtn);
                         li.appendChild(header);
@@ -136,7 +157,8 @@
             const taskData = {
                 title: document.getElementById("title").value,
                 description: document.getElementById("description").value,
-                priority: document.getElementById("priority").value
+                priority: document.getElementById("priority").value,
+                due_date: document.getElementById("due-date").value || null
             };
             const url = editingTaskId
             ? `http://localhost:8000/tasks/${editingTaskId}`
@@ -156,6 +178,7 @@
                 document.getElementById("title").value = "";
                 document.getElementById("description").value = "";
                 document.getElementById("priority").value = "medium";
+                document.getElementById("due-date").value = "";
             })
             .catch(() => showError(editingTaskId ? "Failed updating the task" : "Failed creating the task"));
         }
