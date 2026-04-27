@@ -10,9 +10,10 @@ def test_create_task():
     response = client.post("/tasks/", json={"title": "Test task",
                                  "description": "This is a test task",
                                  "priority": "medium",
-                                  "due_date": "2024-12-31T23:59:00"})
+                                  "due_date": "31/12/2024, 23:59"})
     assert response.status_code == 200
     assert response.json()["title"] == "Test task"
+    assert response.json()["due_date"] == "31/12/2024, 23:59"
 
 # send a GET request
 # check the status code is 200

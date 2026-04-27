@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker</title>
+    <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f5f5f3; min-height: 100vh; padding: 2rem; }
+    h1 { font-size: 22px; font-weight: 500; margin-bottom: 1.5rem; text-align: center; }
+    h2 { font-size: 18px; font-weight: 500; margin-bottom: 1rem; }
+    .card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+    label { font-size: 13px; color: #666; }
+    input, select { height: 36px; border: 1px solid #ddd; border-radius: 8px; padding: 0 10px; font-size: 14px; outline: none; width: 100%; }
+    .btn { height: 36px; padding: 0 16px; border: 1px solid #ddd; border-radius: 8px; background: transparent; font-size: 14px; cursor: pointer; }
+    .btn:hover { background: #f5f5f3; }
+    .btn-danger { border-color: #fca5a5; color: #dc2626; }
+    .btn-danger:hover { background: #fef2f2; }
+    .task-item { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .task-header { display: flex; align-items: center; gap: 10px; }
+    .task-title { font-size: 15px; font-weight: 500; cursor: pointer; flex: 1; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 8px; border: 1px solid; }
+    .badge-open { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .badge-medium { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .badge-high { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+    .badge-low { background: #f5f5f3; color: #666; border-color: #ddd; }
+    .task-details { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Task Tracker API</h1>
+    <div id="error-msg" style="display:none; color: red; text-align: center; margin-bottom: 1rem;"></div>
+    <div class="card">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" placeholder="Task title">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" placeholder="Task description">
+            </div>
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority">
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <button type="button" id="add-task-btn" class="btn" onclick="createTask()">Add task</button>
+        </div>
+    </div>
+    <h2>Tasks:</h2>
+    <div id="task-list"></div>
+    <script>
+        let editingTaskId = null;
+        function showError(message) {
+            const el = document.getElementById("error-msg");
+            el.textContent = message;
+            el.style.display = "block";
+            setTimeout(() => { el.style.display = "none"; }, 4000)
+        }
+        function loadTasks() {
+            fetch("http://localhost:8000/tasks/")
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById("task-list");
+                    taskList.innerHTML = "";
+                    tasks.forEach(task => {
+                        const li = document.createElement("div");
+                        li.className = "task-item";
+
+                        // header row
+                        const header = document.createElement("div");
+                        header.className = "task-header";
+
+                        // clickable title
+                        const title = document.createElement("span");
+                        title.className = "task-title";
+                        title.textContent = task.title;
+
+                        // badges
+                        const statusBadge = document.createElement("span");
+                        statusBadge.className = `badge badge-${task.status}`;
+                        statusBadge.textContent = task.status;
+
+                        const priorityBadge = document.createElement("span");
+                        priorityBadge.className = `badge badge-${task.priority}`;
+                        priorityBadge.textContent = task.priority;
+
+                        // delete button
+                        const deleteBtn = document.createElement("button");
+                        deleteBtn.className = "btn btn-danger";
+                        deleteBtn.textContent = "Delete";
+                        deleteBtn.onclick = () => deleteTask(task.id);
+
+                        // edit button
+                        const editBtn = document.createElement("button");
+                        editBtn.className = "btn";
+                        editBtn.textContent = "Edit";
+                        editBtn.onclick = () => {
+                            editingTaskId = task.id
+                            document.getElementById("add-task-btn").textContent = "Save changes";
+                            document.getElementById("title").value = task.title;
+                            document.getElementById("description").value = task.description || "";
+                            document.getElementById("priority").value = task.priority;
+                        };
+
+
+                        // description
+                        const details = document.createElement("div");
+                        details.className = "task-details";
+                        details.textContent = task.description || "No description";
+                        details.style.display = "none";
+
+                        title.onclick = () => {
+                            details.style.display = details.style.display === "none" ? "block" : "none";
+                        };
+
+                        header.appendChild(title);
+                        header.appendChild(statusBadge);
+                        header.appendChild(priorityBadge);
+                        header.appendChild(editBtn);
+                        header.appendChild(deleteBtn);
+                        li.appendChild(header);
+                        li.appendChild(details);
+                        taskList.appendChild(li);
+                    });
+                })
+                .catch(() => showError("Failed to load tasks. Is the server running?"));
+        }    
+        function createTask() {
+            const taskData = {
+                title: document.getElementById("title").value,
+                description: document.getElementById("description").value,
+                priority: document.getElementById("priority").value
+            };
+            const url = editingTaskId
+            ? `http://localhost:8000/tasks/${editingTaskId}`
+            : "http://localhost:8000/tasks/";
+
+            const method = editingTaskId ? "PUT" : "POST";
+
+            fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(taskData)
+            })
+            .then(() => {
+                loadTasks();
+                editingTaskId = null;
+                document.getElementById("add-task-btn").textContent = "Add task";
+                document.getElementById("title").value = "";
+                document.getElementById("description").value = "";
+                document.getElementById("priority").value = "medium";
+            })
+            .catch(() => showError(editingTaskId ? "Failed updating the task" : "Failed creating the task"));
+        }
+
+        function deleteTask(id) {
+            fetch(`http://localhost:8000/tasks/${id}`, {
+                method: "DELETE"
+            })
+            .then(() => loadTasks())
+            .catch(() => showError("Failed to delete the task"));
+        }
+        loadTasks();
+    </script>
+</body>
+</html>

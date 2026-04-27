@@ -1,6 +1,6 @@
 # Task Tracker API
 
-A REST API for managing tasks built with FastAPI and SQLAlchemy.
+A REST API for managing tasks built with FastAPI and SQLAlchemy, with a vanilla JS frontend.
 
 ## Features
 
@@ -8,10 +8,11 @@ A REST API for managing tasks built with FastAPI and SQLAlchemy.
 - ✅ Task prioritization and status tracking
 - ✅ Due date management
 - ✅ Health check endpoint
+- ✅ Web UI accessible from the browser
 - ✅ Built with FastAPI for high performance
 - ✅ SQLAlchemy ORM for database abstraction
 - ✅ PostgreSQL database support
-- ✅ Comprehensive test suite with pytest
+- ✅ Test suite with pytest
 
 ## Technologies
 
@@ -33,8 +34,10 @@ task_tracker/
 │   ├── schemas.py        # Pydantic request/response schemas
 │   └── routers/
 │       └── tasks.py      # Task API endpoints
+├── static/
+│   └── index.html        # Frontend UI
 ├── tests/
-│   └── test_tasks.py     # Unit and integration tests
+│   └── test_tasks.py     # Tests
 ├── requirements.txt      # Project dependencies
 └── README.md             # This file
 ```
@@ -50,6 +53,7 @@ docker compose up --build
 ```
 
 The API will be available at `http://localhost:8000`
+The frontend UI will be available at `http://localhost:8000/static/index.html`
 
 ### Running Locally
 
@@ -111,8 +115,8 @@ Access the interactive API documentation:
 - **PUT** `/tasks/{task_id}` — Update a task
   ```json
   {
-    "status": "completed",
-    "priority": 2
+    "status": "in_progress",
+    "priority": "medium"
   }
   ```
 
@@ -144,7 +148,4 @@ pytest tests/ -v
 
 ## Database
 
-The application automatically creates all required tables on startup if they don't already exist. The main table created is:
-
-- **Tasks** — Contains all task records
-
+The application automatically creates all required tables on startup if they don't already exist.

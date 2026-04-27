@@ -47,11 +47,10 @@ def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depends(get
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    for key, value in task_update.model_dump(mode="json").items():
-        if value is not None:
-            if key == "priority" and value is not None:
-                value = value.value
-            setattr(task, key, value)
+    for key, value in task_update.model_dump(exclude_unset=True).items():
+        if value is not None and hasattr(value, "value"):
+            value = value.value
+        setattr(task, key, value)
     db.commit()
     db.refresh(task)
     return task
