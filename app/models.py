@@ -23,3 +23,4 @@ class Task(Base):
     priority = Column(String, default="medium")
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, nullable=True, onupdate=func.now())

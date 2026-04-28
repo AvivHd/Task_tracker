@@ -26,13 +26,22 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     return new_task
 
 @router.get("/tasks/", response_model=List[TaskResponse])
-def get_tasks(status: Optional[models.Status] = None, priority: Optional[models.Priority] = None, db: Session = Depends(get_db)):
+def get_tasks(
+    status: Optional[models.Status] = None,
+    priority: Optional[models.Priority] = None,
+    limit: int = 100,
+    offset: int = 0,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     query = db.query(models.Task)
     if status:
         query = query.filter(models.Task.status == status)
     if priority:
         query = query.filter(models.Task.priority == priority)
-    return query.all()
+    if search:
+        query = query.filter(models.Task.title.ilike(f"%{search}%"))
+    return query.offset(offset).limit(limit).all()
 
 
 @router.get("/tasks/{task_id}", response_model=TaskResponse)

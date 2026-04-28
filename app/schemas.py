@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -14,8 +14,8 @@ class Priority(str, Enum):
     Low = "low"
 
 class TaskCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
+    title: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=500)
     priority: Optional[Priority] = Priority.Medium
     due_date: Optional[datetime] = None
 
@@ -27,6 +27,7 @@ class TaskResponse(BaseModel):
     priority: Priority
     due_date: Optional[datetime]
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
 class TaskUpdate(BaseModel):
     description: Optional[str] = None

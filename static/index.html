@@ -7,7 +7,7 @@
     <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; background: #f5f5f3; min-height: 100vh; padding: 2rem; }
-    h1 { font-size: 22px; font-weight: 500; margin-bottom: 1.5rem; text-align: center; }
+    h1 { font-size: 35px; font-weight: 500; margin-bottom: 1.5rem; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
     h2 { font-size: 18px; font-weight: 500; margin-bottom: 1rem; }
     .card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
     .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <h1>Welcome to the Task Tracker API</h1>
+    <h1>Welcome to the Task Tracker!</h1>
     <div id="error-msg" style="display:none; color: red; text-align: center; margin-bottom: 1rem;"></div>
     <div class="card">
         <div class="form-row">
@@ -68,6 +68,7 @@
             <button type="button" id="cancel-btn" class="btn" onclick="cancelEdit()" style="display:none;">Cancel</button>
         </div>
     </div>
+    <input type="text" id="search" placeholder="Search tasks..." style="margin-bottom: 1rem; width: 100%; max-width: 300px;">
     <h2>Tasks:</h2>
     <div id="task-list"></div>
     <script>
@@ -79,13 +80,17 @@
             setTimeout(() => { el.style.display = "none"; }, 4000)
         }
         function loadTasks() {
-            fetch("http://localhost:8000/tasks/")
+            const search = document.getElementById("search").value;
+            const url = search
+            ? `http://localhost:8000/tasks/?search=${search}`
+            : "http://localhost:8000/tasks/";
+            fetch(url)
                 .then(response => response.json())
                 .then(tasks => {
                     const taskList = document.getElementById("task-list");
                     taskList.innerHTML = "";
                     if (tasks.length === 0) {
-                        taskList.innerHTML = "<p style='color: #666; font-size: 14px;'>No tasks yet, add one above!</p>";
+                        taskList.innerHTML = "<p style='color: #666; font-size: 14px;'>No tasks found</p>";
                         return;
                     }
                     tasks.forEach(task => {
@@ -194,7 +199,11 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(taskData)
             })
-            .then(() => {
+            .then((response) => {
+                if (!response.ok) {
+                    showError("Please fill in all required fields correctly.");
+                    return;
+                }
                 loadTasks();
                 editingTaskId = null;
                 document.getElementById("add-task-btn").textContent = "Add task";
@@ -214,6 +223,7 @@
             .then(() => loadTasks())
             .catch(() => showError("Failed to delete the task"));
         }
+        document.getElementById("search").addEventListener("input", () => loadTasks());
         loadTasks();
     </script>
 </body>
