@@ -23,6 +23,8 @@
     .task-title { font-size: 15px; font-weight: 500; cursor: pointer; flex: 1; }
     .badge { font-size: 11px; padding: 2px 8px; border-radius: 8px; border: 1px solid; }
     .badge-open { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .badge-in_progress { background: #ced8f8; color: #08014a; border-color: #8e9dcd; }
+    .badge-done { background: #d7f9e6; color: #05963f; border-color: #b8e6cd; }
     .badge-medium { background: #fffbeb; color: #92400e; border-color: #fde68a; }
     .badge-high { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
     .badge-low { background: #f5f5f3; color: #666; border-color: #ddd; }
@@ -50,11 +52,20 @@
                     <option value="low">Low</option>
                 </select>
             </div>
+            <div class="form-group" id="status-group" style="display:none;">
+                <label for="status">Status</label>
+                <select id="status">
+                    <option value="open">open</option>
+                    <option value="in_progress">in progress</option>
+                    <option value="done">done</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="due-date">Due date</label>
                 <input type="date" id="due-date">
             </div>
             <button type="button" id="add-task-btn" class="btn" onclick="createTask()">Add task</button>
+            <button type="button" id="cancel-btn" class="btn" onclick="cancelEdit()" style="display:none;">Cancel</button>
         </div>
     </div>
     <h2>Tasks:</h2>
@@ -73,6 +84,10 @@
                 .then(tasks => {
                     const taskList = document.getElementById("task-list");
                     taskList.innerHTML = "";
+                    if (tasks.length === 0) {
+                        taskList.innerHTML = "<p style='color: #666; font-size: 14px;'>No tasks yet, add one above!</p>";
+                        return;
+                    }
                     tasks.forEach(task => {
                         const li = document.createElement("div");
                         li.className = "task-item";
@@ -89,18 +104,11 @@
                         // badges
                         const statusBadge = document.createElement("span");
                         statusBadge.className = `badge badge-${task.status}`;
-                        statusBadge.textContent = task.status;
+                        statusBadge.textContent = task.status.replace("_", " ");
 
                         const priorityBadge = document.createElement("span");
                         priorityBadge.className = `badge badge-${task.priority}`;
                         priorityBadge.textContent = task.priority;
-
-                        if (task.due_date) {
-                            const dueBadge = document.createElement("span");
-                            dueBadge.className = "badge badge-low";
-                            dueBadge.textContent = "Due: " + new Date(task.due_date).toLocaleDateString("en-GB");
-                            header.appendChild(dueBadge);
-                        }
 
                         // delete button
                         const deleteBtn = document.createElement("button");
@@ -115,12 +123,14 @@
                         editBtn.onclick = () => {
                             editingTaskId = task.id
                             document.getElementById("add-task-btn").textContent = "Save changes";
+                            document.getElementById("cancel-btn").style.display = "inline";
                             document.getElementById("title").value = task.title;
                             document.getElementById("description").value = task.description || "";
                             document.getElementById("priority").value = task.priority;
+                            document.getElementById("status-group").style.display = "block";
+                            document.getElementById("status").value = task.status;
                             document.getElementById("due-date").value = task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "";
                         };
-
 
                         // description
                         const details = document.createElement("div");
@@ -152,12 +162,25 @@
                     });
                 })
                 .catch(() => showError("Failed to load tasks. Is the server running?"));
-        }    
+        }
+        
+        function cancelEdit() {
+            editingTaskId = null;
+            document.getElementById("add-task-btn").textContent = "Add task";
+            document.getElementById("cancel-btn").style.display = "none";
+            document.getElementById("title").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("priority").value = "medium";
+            document.getElementById("due-date").value = "";
+            document.getElementById("status-group").style.display = "none";
+        }
+
         function createTask() {
             const taskData = {
                 title: document.getElementById("title").value,
                 description: document.getElementById("description").value,
                 priority: document.getElementById("priority").value,
+                status: editingTaskId ? document.getElementById("status").value : undefined,
                 due_date: document.getElementById("due-date").value || null
             };
             const url = editingTaskId
@@ -179,6 +202,7 @@
                 document.getElementById("description").value = "";
                 document.getElementById("priority").value = "medium";
                 document.getElementById("due-date").value = "";
+                cancelEdit();
             })
             .catch(() => showError(editingTaskId ? "Failed updating the task" : "Failed creating the task"));
         }
